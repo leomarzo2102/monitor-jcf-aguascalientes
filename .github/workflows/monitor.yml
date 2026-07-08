@@ -1,9 +1,9 @@
 name: Monitor JCF Automatizado
 
 on:
-  workflow_dispatch: # Permite ejecutarlo manualmente con el botón
+  workflow_dispatch: # Permite ejecutarlo manualmente con el botón cuando quieras
   schedule:
-    - cron: '*/15 * * * *' # Se ejecuta automáticamente cada 15 minutos
+    - cron: '*/15 * * * *' # Se ejecuta automáticamente cada 15 minutos de forma constante
 
 jobs:
   build:
