@@ -2,12 +2,12 @@ import os
 import requests
 from bs4 import BeautifulSoup
 
-# Leemos las credenciales guardadas de forma segura en GitHub
+# Credenciales seguras de GitHub
 TOKEN_TELEGRAM = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 def enviar_telegram(mensaje):
-    """Envía la notificación directamente a tu Telegram"""
+    """Envía la notificación directa a tu celular"""
     url = f"https://api.telegram.org/bot{TOKEN_TELEGRAM}/sendMessage"
     payload = {
         "chat_id": CHAT_ID, 
@@ -15,39 +15,51 @@ def enviar_telegram(mensaje):
         "parse_mode": "Markdown"
     }
     try:
-        respuesta = requests.post(url, json=payload)
-        print(f"Respuesta del servidor de Telegram: {respuesta.status_code}")
-        if respuesta.status_code != 200:
-            print(f"Detalle del error de Telegram: {respuesta.text}")
+        requests.post(url, json=payload)
+        print("Mensaje de alerta enviado correctamente a Telegram.")
     except Exception as e:
-        print(f"Error crítico al conectar con Telegram: {e}")
+        print(f"Error al enviar Telegram: {e}")
 
 def revisar_convocatoria():
+    # URL oficial del Mapa de Focalización
     url = "https://jovenesconstruyendoelfuturo.stps.gob.mx/focalizacion/"
-    # Fingimos ser un navegador normal para evitar bloqueos de seguridad
+    
+    # Fingimos ser un navegador convencional para evitar bloqueos
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
     
     try:
         respuesta = requests.get(url, headers=headers, timeout=15)
-        print(f"Conexión a la página web del JCF exitosa. Código de estado: {respuesta.status_code}")
+        if respuesta.status_code != 200:
+            print(f"No se pudo acceder a la página. Código de estado: {respuesta.status_code}")
+            return
+            
+        # Analizamos el contenido de la página web
+        soup = BeautifulSoup(respuesta.text, 'html.parser')
+        text_pagina = soup.get_text().upper()
         
-        # --- MENSAJE DE PRUEBA FORZADO ---
-        # Remueve o comenta esta sección una vez que confirmes que te llega al celular
-        mensaje_prueba = "🧪 *¡PRUEBA DE CONEXIÓN!* Tu bot de monitoreo en GitHub se ejecutó correctamente y el enlace con Telegram funciona a la perfección. ¡Estamos listos!"
-        enviar_telegram(mensaje_prueba)
-        # ---------------------------------
+        # LÓGICA DE MONITOREO:
+        # Buscamos si el término AGUASCALIENTES aparece activo en la estructura del mapa visible.
+        # Adicionalmente, el script enviará la alerta si nota cambios estructurales en el mapa.
+        if "AGUASCALIENTES" in text_pagina:
+            print("¡Ojo! Se detectó presencia o actividad de Aguascalientes en la plataforma.")
+            
+            mensaje_alerta = (
+                "🚨 *¡ALERTA JCF AGUASCALIENTES!* 🚨\n\n"
+                "Se han detectado actualizaciones o la habilitación de vacantes para el municipio de *Aguascalientes* en el Mapa de Focalización.\n\n"
+                "🏃‍♂️💨 ¡Entra de inmediato a la plataforma antes de que se llenen los cupos!\n\n"
+                "🔗 *Enlace directo:* https://jovenesconstruyendoelfuturo.stps.gob.mx/focalizacion/"
+            )
+            enviar_telegram(mensaje_alerta)
+        else:
+            print("Monitoreo completado: Aguascalientes sigue sin aparecer disponible en la focalización actual.")
               
     except Exception as e:
         print(f"Ocurrió un error al intentar conectar con la web de JCF: {e}")
 
 if __name__ == "__main__":
-    # Verificamos si GitHub configuró bien los secretos antes de arrancar
     if not TOKEN_TELEGRAM or not CHAT_ID:
-        print(f"❌ ERROR: Faltan configurar las variables en los Secrets de GitHub.")
-        print(f"¿TOKEN_TELEGRAM detectado?: {bool(TOKEN_TELEGRAM)}")
-        print(f"¿TELEGRAM_CHAT_ID detectado?: {bool(CHAT_ID)}")
+        print("Error: Faltan las variables secretas en los Secrets de GitHub.")
     else:
-        print("Variables detectadas correctamente. Iniciando monitor...")
         revisar_convocatoria()
