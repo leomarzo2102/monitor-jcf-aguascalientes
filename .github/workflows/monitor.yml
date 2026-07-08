@@ -1,27 +1,30 @@
 name: Monitor JCF Automatizado
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Permite ejecutarlo manualmente con el botón
   schedule:
-    - cron: '0 * * * *' # Se ejecuta en automático al inicio de cada hora
+    - cron: '0 * * * *' # Se ejecuta automáticamente cada hora en punto
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Clonar repositorio
+      - name: Clonar el código del repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Configurar entorno de Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Instalar librerías
-        run: pip install -r requirements.txt
+      - name: Instalar librerías del proyecto
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Ejecutar script
+      - name: Ejecutar script de monitoreo
         env:
+          # Mapeamos los Secrets de la configuración de GitHub hacia el script de Python
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python monitor.py
