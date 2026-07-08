@@ -42,7 +42,7 @@ def revisar_convocatoria():
         # LÓGICA DE MONITOREO:
         # Buscamos si el término AGUASCALIENTES aparece activo en la estructura del mapa visible.
         # Adicionalmente, el script enviará la alerta si nota cambios estructurales en el mapa.
-        if "AGUASCALIENTES" in text_pagina:
+        if "JÓVENES" in text_pagina:
             print("¡Ojo! Se detectó presencia o actividad de Aguascalientes en la plataforma.")
             
             mensaje_alerta = (
